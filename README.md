@@ -1,1 +1,1 @@
-# videoprocess
+![Meero Logo](https://github.com/princys-laboratory/videoprocess/blob/main/meero.gif)
