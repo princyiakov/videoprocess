@@ -8,58 +8,64 @@ from skimage.metrics import structural_similarity as ssim
 
 
 class VidRectifier:
-    def __init__(self, in_file, out_file, verbose=False):
+    def __init__(self, in_file, out_file, verbose=True):
         self.in_file = in_file
         self.out_file = out_file
         self.verbose = verbose
         self.frames = []
         self.good_frames = []
+        self.width = 0
+        self.height = 0
 
     def __read_video_file(self):
-        """Reads the declared input video file
-           Return: a list with the video frames
+        """
+        Reads the declared input video file
+        Return: a list with the video frames
         """
         cap = cv2.VideoCapture(self.in_file)
+        self.width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)) # Width of the frame
+        self.height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)) # Height of the frame
 
         vid_frames = []
         while True:
-            ret, frame = cap.read()
+            ret, frame = cap.read() # Read the frames of the video
             if not ret:
                 break
             vid_frames.append(frame)
 
-        assert len(vid_frames) > 0, "Empty list, file exists ?"
+        assert len(vid_frames) > 0, "No frames found: Please check the path of the input file"
         return vid_frames
 
-    def __write_video_file(self, fps=30, res=(1280, 480)):
-        """Write a video file
-        Args:
-          frames: frames to write
-          fps: video fps
-          res: resolution of the video (should match with the frames shape)
+    def __write_video_file(self, frames, fps=30):
         """
-
+        Write a video file
+        Args:
+            frames: Frames to write
+            fps: Frames per second
+        """
+        res = (self.width, self.height)
         out = cv2.VideoWriter(self.out_file,
                               cv2.VideoWriter_fourcc(*'XVID'),
                               fps,
                               res)
 
-        for f in self.frames:
+        for f in frames:
             out.write(f)
 
         out.release()
 
-    def __save_sample(self, file, grid_pad=5, resize=(64, 64)):
-        """Write a grid of images
-        Args:
-          samples: list of images
-          file: output file
-          grid_pad: pixels between samples
-          resize: size of the images in the grid
+    def __save_sample(self, frames, file, grid_pad=5, resize=(128, 128)):
         """
-
+        Write a grid of images
+        Args:
+            frames: Frames to be saved
+            file: Output file name
+            grid_pad: Pixels between samples
+            resize: Size of the images in the grid
+        """
+        # Create a array of frames to be saved
         samples = np.array(
-            [cv2.resize(cv2.cvtColor(f, cv2.COLOR_BGR2RGB), (128, 128)) for f in self.frames])
+            [cv2.resize(cv2.cvtColor(f, cv2.COLOR_BGR2RGB), resize) for f in frames])
 
         if len(samples.shape) < 4:
             samples = np.expand_dims(samples, 4)
@@ -69,8 +75,9 @@ class VidRectifier:
         nb_channels = int(samples.shape[3])
 
         grid_size = (
-        int(math.ceil(np.sqrt(samples.shape[0]))), int(math.ceil(np.sqrt(samples.shape[0]))))
-        print(grid_size)
+            int(math.ceil(np.sqrt(samples.shape[0]))), int(math.ceil(np.sqrt(samples.shape[0]))))
+        if self.verbose:
+            print(grid_size)
         samples = samples.reshape(samples.shape[0], img_height, img_width, nb_channels)
 
         grid_h = img_height * grid_size[0] + grid_pad * (grid_size[0] - 1)
@@ -87,21 +94,34 @@ class VidRectifier:
         imageio.imwrite(file, np.squeeze(img_grid))
 
     def __extract_outliers(self):
+        """
+        Extract outliers based on density based clustering
+        """
         self.frames = self.__read_video_file()
 
+        # Flatten the image
         flat_reduced = [cv2.resize(f, (128, 128)).flatten() for f in self.frames]
+
+        # DBSCAN - Density-Based Spatial Clustering from features
         db = DBSCAN(eps=13000, min_samples=2)
         cl = db.fit(flat_reduced)
 
+        # Cluster labels. Noisy samples are given the label -1
         n_cluster = len(set(db.labels_)) - (1 if -1 in db.labels_ else 0)
         assert n_cluster == 1, "Only one cluster should exist"
 
         self.good_frames = np.array(self.frames)[cl.labels_ == 0]
 
+        # Save the outliers frames as a grid
         self.__save_sample(np.array(self.frames)[cl.labels_ == -1], "outliers.png")
+
+        # Save the good frames as a grid
         self.__save_sample(self.good_frames, "good_frames.png")
 
     def __sort_indx(self, start_frame, m_d_idx):
+        """
+        Sort the index of the frames
+        """
         ordered_idx = [start_frame]
 
         while len(ordered_idx) != m_d_idx.shape[0]:
@@ -122,9 +142,10 @@ class VidRectifier:
             d_vals.append(abs(i - j))
 
         if stats:
-            print("mean ", np.mean(vals))
-            print("median", np.median(vals))
-            print("max, min ", max(vals), min(vals))
+            if self.verbose:
+                print("mean ", np.mean(vals))
+                print("median", np.median(vals))
+                print("max, min ", max(vals), min(vals))
 
             x_pos = [i for i, _ in enumerate(vals)]
             plt.bar(x_pos, vals)
@@ -133,16 +154,24 @@ class VidRectifier:
         return sum(d_vals)
 
     def rectify_vid_seq(self):
+        self.__extract_outliers()
         m_d_ssim = np.zeros((len(self.good_frames), len(self.good_frames)), dtype=float)
 
-        f_r = [cv2.resize(cv2.cvtColor(f, cv2.COLOR_BGR2GRAY), (256, 256)) for f in self.good_frames]
+        f_r = [cv2.resize(cv2.cvtColor(f, cv2.COLOR_BGR2GRAY), (256, 256)) for f in
+               self.good_frames]
 
+        # m_d_ssim builds a matrix of structural similarity between two images of the good_frames
+        # list
         for i, f1 in enumerate(f_r):
             for j, f2 in enumerate(f_r):
                 m_d_ssim[i, j] = ssim(f1, f2, multichannel=False)
-            print(f"step {i + 1}/{len(f_r)}")
+            if self.verbose:
+                print(f"step {i + 1}/{len(f_r)}")
 
+        # Distance ssim is equal to 1 for identical images and -1 for distant images
+        # m_d_s_idx provides sorted index matrix representing the image index with max similarity
         m_d_s_idx = np.argsort(-m_d_ssim, axis=1)
+
         vals = []
         for s in range(m_d_s_idx.shape[0]):
             ordered_idx = self.__sort_indx(s, m_d_s_idx)
@@ -164,4 +193,4 @@ class VidRectifier:
         worst_order = self.__sort_indx(worst_start, m_d_s_idx)
         self.__smoothness(worst_order, m_d_ssim, True)
 
-        self.__write_video_file('out.mp4', self.good_frames[ordered_idx])
+        self.__write_video_file(self.good_frames[ordered_idx])
