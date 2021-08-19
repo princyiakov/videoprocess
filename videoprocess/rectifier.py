@@ -1,3 +1,4 @@
+import os
 import math
 import cv2
 import numpy as np
@@ -7,11 +8,27 @@ import imageio
 from skimage.metrics import structural_similarity as ssim
 
 
+def _sort_indx(start_frame, m_d_idx):
+    """
+    Sort the index of the frames
+    """
+    ordered_idx = [start_frame]  # Starting frame to be considered for sorting
+
+    while len(ordered_idx) != m_d_idx.shape[0]:
+        for e in m_d_idx[ordered_idx[-1]]:  # from m_d_idx consider the last array in ordered_idx
+            if e not in ordered_idx:
+                ordered_idx.append(e) # Append only if the value is not present in ordered_idx
+                break
+
+    return ordered_idx
+
+
 class VidRectifier:
     def __init__(self, in_file, out_file, verbose=True):
         self.in_file = in_file
         self.out_file = out_file
         self.verbose = verbose
+        self.basename = os.path.splitext(out_file)[0]
         self.frames = []
         self.good_frames = []
         self.width = 0
@@ -20,15 +37,15 @@ class VidRectifier:
     def __read_video_file(self):
         """
         Reads the declared input video file
-        Return: a list with the video frames
+        Return: a list with the ordered video frames index value
         """
         cap = cv2.VideoCapture(self.in_file)
-        self.width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)) # Width of the frame
-        self.height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)) # Height of the frame
+        self.width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))  # Width of the frame
+        self.height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))  # Height of the frame
 
         vid_frames = []
         while True:
-            ret, frame = cap.read() # Read the frames of the video
+            ret, frame = cap.read()  # Read the frames of the video
             if not ret:
                 break
             vid_frames.append(frame)
@@ -113,24 +130,10 @@ class VidRectifier:
         self.good_frames = np.array(self.frames)[cl.labels_ == 0]
 
         # Save the outliers frames as a grid
-        self.__save_sample(np.array(self.frames)[cl.labels_ == -1], "outliers.png")
+        self.__save_sample(np.array(self.frames)[cl.labels_ == -1], self.basename + "_outliers.png")
 
         # Save the good frames as a grid
-        self.__save_sample(self.good_frames, "good_frames.png")
-
-    def __sort_indx(self, start_frame, m_d_idx):
-        """
-        Sort the index of the frames
-        """
-        ordered_idx = [start_frame]
-
-        while len(ordered_idx) != m_d_idx.shape[0]:
-            for e in m_d_idx[ordered_idx[-1]]:
-                if e not in ordered_idx:
-                    ordered_idx.append(e)
-                    break
-
-        return ordered_idx
+        self.__save_sample(self.good_frames, self.basename + "_good_frames.png")
 
     def __smoothness(self, order, dist_m, stats=False):
         vals = []
@@ -154,14 +157,21 @@ class VidRectifier:
         return sum(d_vals)
 
     def rectify_vid_seq(self):
+        """
+        Function to rectify the sequence of the video
+        """
+
+        # Extract the outliers(images that don't belong to the original) from the video
         self.__extract_outliers()
+
+        # Initialise m_d_ssim
         m_d_ssim = np.zeros((len(self.good_frames), len(self.good_frames)), dtype=float)
 
+        # Resize and convert to grayscale the good frames(belonging to original video)
         f_r = [cv2.resize(cv2.cvtColor(f, cv2.COLOR_BGR2GRAY), (256, 256)) for f in
                self.good_frames]
 
-        # m_d_ssim builds a matrix of structural similarity between two images of the good_frames
-        # list
+        # m_d_ssim builds a matrix of structural similarity of the good_frames list
         for i, f1 in enumerate(f_r):
             for j, f2 in enumerate(f_r):
                 m_d_ssim[i, j] = ssim(f1, f2, multichannel=False)
@@ -174,7 +184,7 @@ class VidRectifier:
 
         vals = []
         for s in range(m_d_s_idx.shape[0]):
-            ordered_idx = self.__sort_indx(s, m_d_s_idx)
+            ordered_idx = _sort_indx(s, m_d_s_idx)
 
             d = self.__smoothness(ordered_idx, -m_d_ssim)
             vals.append((s, d))
@@ -183,14 +193,15 @@ class VidRectifier:
         best_start = starts[0][0]
         worst_start = starts[-1][0]
 
-        ordered_idx = self.__sort_indx(best_start, m_d_s_idx)
+        ordered_idx = _sort_indx(best_start, m_d_s_idx)
 
-        self.__save_sample(np.array(self.good_frames)[ordered_idx], 'good_order.png')
+        self.__save_sample(np.array(self.good_frames)[ordered_idx], self.basename
+                           + "_good_order.png")
 
-        best_order = self.__sort_indx(best_start, m_d_s_idx)
+        best_order = _sort_indx(best_start, m_d_s_idx)
         self.__smoothness(best_order, m_d_ssim, True)
 
-        worst_order = self.__sort_indx(worst_start, m_d_s_idx)
+        worst_order = _sort_indx(worst_start, m_d_s_idx)
         self.__smoothness(worst_order, m_d_ssim, True)
 
         self.__write_video_file(self.good_frames[ordered_idx])

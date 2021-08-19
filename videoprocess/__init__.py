@@ -1,1 +1,1 @@
-from videoprocess.rectifier import VidRectifier
+from videoprocess.rectifier import VidRectifier, os
