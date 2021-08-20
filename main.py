@@ -1,5 +1,6 @@
 import argparse
 from videoprocess import VidRectifier, os
+import time
 
 
 def check_path(path, curr_dir):
@@ -14,8 +15,9 @@ def check_path(path, curr_dir):
 
 
 def main():
+    start_time = time.time()
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    print('Your current working directory is ', current_dir)
+    print("Your current working directory is ", current_dir)
 
     parser = argparse.ArgumentParser(description='Video Rectifier')
     parser.add_argument('--input_file', type=str, required=True,
@@ -26,11 +28,14 @@ def main():
 
     input_file = check_path(args.input_file, current_dir)
     output_file = check_path(args.output_file, current_dir)
-    print('The path to the video to be rectified is {} and the rectified video will be saved at {'
-          '}'.format(input_file, output_file))
+    print("Input video path is {} ".format(input_file))
+    print("Initiating the rectification process")
 
-    vr = VidRectifier(in_file=input_file, out_file=output_file)
+    vr = VidRectifier(in_file=input_file, out_file=output_file, verbose=True)
     vr.rectify_vid_seq()
+    print("Rectified video has been saved at  {} ".format(output_file))
+
+    print("Time taken to process the video is {}s seconds".format(time.time() - start_time))
 
 
 if __name__ == '__main__':

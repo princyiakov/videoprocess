@@ -46,4 +46,6 @@ algorithms and also most cited in scientific literature.
 #### What is SSIM
 The Structural Similarity Index (SSIM) is a much newer equation developed in 2004 by Wang et al. SSIM Index quality 
 assessment index is based on the computation of three factors; luminance (l), contrast (c) and structure (s). 
-The SSIM values range between 0 to 1 where 1 means a perfect match between the original image and the copy.
+The SSIM values range between 0 and 1 where 1 means a perfect match between the original image and the copy.
+
+## Installation

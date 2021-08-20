@@ -24,7 +24,7 @@ def _sort_indx(start_frame, m_d_idx):
 
 
 class VidRectifier:
-    def __init__(self, in_file, out_file, verbose=True):
+    def __init__(self, in_file, out_file, verbose=False):
         self.in_file = in_file
         self.out_file = out_file
         self.verbose = verbose
@@ -136,6 +136,9 @@ class VidRectifier:
         self.__save_sample(self.good_frames, self.basename + "_good_frames.png")
 
     def __smoothness(self, order, dist_m, stats=False):
+        """
+        Returns values with the least “jumps” of distances between the frames
+        """
         vals = []
         for i, j in zip(order, order[1:]):
             vals.append(dist_m[i, j])
