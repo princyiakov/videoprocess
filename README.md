@@ -16,7 +16,6 @@ are not part of the main video.
 - [Installation](#installation)
   - [Install Package](#install-package)
   - [Docker Image](#docker-image)
-    - [Using pre-built images](#using-pre-built-images)
     - [Building the image yourself](#building-the-image-yourself)
 - [Resources](#resources)
 <!-- tocstop -->
@@ -49,3 +48,53 @@ assessment index is based on the computation of three factors; luminance (l), co
 The SSIM values range between 0 and 1 where 1 means a perfect match between the original image and the copy.
 
 ## Installation
+We can use the code by either installing the package on the local or install the docker image 
+
+### Install Package
+1. Clone the code on your local
+```
+git clone https://github.com/princys-laboratory/videoprocess.git
+cd videoprocess
+```
+2. Create and activate the conda environment
+```
+conda create --name vidprocess python=3.7
+conda activate vidprocess
+```
+3. Install the package
+```
+pip install ./Installable/vidprocess-0.0.1.tar.gz
+```
+
+### Docker Image
+Please note that the docker file was tested and implemented on Docker version 19.03.8,
+
+The `Dockerfile` is supplied to build images. Make sure docker is installed on your local.
+Type the following on your terminal to confirm docker is intsalled.
+```
+docker -v
+```
+
+You should be able to see the version of the docker in response similar to this `Docker version 19.03.8, build afacb8b`
+
+#### Building the image yourself
+1. Clone the code on your local
+2. Navigate to the folder
+
+```
+git clone https://github.com/princys-laboratory/videoprocess.git
+cd videoprocess
+```
+
+3. Build your image . Below `video-process` signifies the Repository name of the image and `0.1` signifies the Tag
+```
+docker build --file Dockerfile -t video-process:0.1 .
+```
+
+Once the image is successfully build you will see the message `Successfully tagged video-process:0.1
+` on your terminal.
+
+On successful installation, you should be able to see the Repository name and Tag when you type the following 
+```
+docker images
+```

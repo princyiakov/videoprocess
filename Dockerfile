@@ -10,7 +10,6 @@ RUN apt-get update
 RUN apt-get install ffmpeg libsm6 libxext6  -y
 
 COPY ./videoprocess ./videoprocess
-COPY ./dist ./dist/
 COPY ./main.py .
 COPY ./LICENSE .
 COPY ./setup.py .
