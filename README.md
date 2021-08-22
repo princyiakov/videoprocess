@@ -17,11 +17,15 @@ are not part of the main video.
   - [Install Package](#install-package)
   - [Docker Image](#docker-image)
     - [Building the image yourself](#building-the-image-yourself)
+- [How to run the application](#how-to-run-the-application)
 - [Resources](#resources)
 <!-- tocstop -->
 
 ## More About The Project
-
+Let us understand in detail about the project
+| Before | After |
+| ---- | --- |
+|https://github.com/princys-laboratory/videoprocess/blob/main/Input_file.gif| https://github.com/princys-laboratory/videoprocess/blob/main/Output_file.gif|
 ### Understanding the Use Case
 The goal is to have an installable Python package that could be integrated into the company’s  processing pipelines
 or just be used by anyone in the team on their own computer to correct any corrupted videos they might have.
@@ -85,8 +89,13 @@ You should be able to see the version of the docker in response similar to this 
 git clone https://github.com/princys-laboratory/videoprocess.git
 cd videoprocess
 ```
+3. Update your video name on Docker image by replacing `shuffled_19.mp4` with your file name (consider the local file 
+   location while updating the data) in the lines
+   `COPY ./shuffled_19.mp4 .`  and `CMD ["./main.py", "--input_file", "shuffled_19.mp4", "--output_file", "out.mp4"]` in `Dockerfile` .
 
-3. Build your image . Below `video-process` signifies the Repository name of the image and `0.1` signifies the Tag
+4. You can change `out.mp4` with your desired output file name.   
+
+5. Build your image . Below `video-process` signifies the Repository name of the image and `0.1` signifies the Tag
 ```
 docker build --file Dockerfile -t video-process:0.1 .
 ```
@@ -97,4 +106,14 @@ Once the image is successfully build you will see the message `Successfully tagg
 On successful installation, you should be able to see the Repository name and Tag when you type the following 
 ```
 docker images
+```
+
+## How to run the application
+Command line arguments
+```
+usage:python3 main.py --input_file shuffled_19.mp4 --output_file out6.mp4
+
+argument  : 
+--input_file      Path to the input video file to be recitfied
+--output_fie      Path to the output file where the recified image is to be stored
 ```
