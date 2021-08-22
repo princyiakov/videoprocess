@@ -23,9 +23,10 @@ are not part of the main video.
 
 ## More About The Project
 Let us understand in detail about the project
-| Before | After |
-| ---- | --- |
-|https://github.com/princys-laboratory/videoprocess/blob/main/Input_file.gif| https://github.com/princys-laboratory/videoprocess/blob/main/Output_file.gif|
+#### Before : 
+https://github.com/princys-laboratory/videoprocess/blob/main/Input_file.gif
+#### After : 
+https://github.com/princys-laboratory/videoprocess/blob/main/Output_file.gif
 ### Understanding the Use Case
 The goal is to have an installable Python package that could be integrated into the company’s  processing pipelines
 or just be used by anyone in the team on their own computer to correct any corrupted videos they might have.
