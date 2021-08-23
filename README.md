@@ -64,7 +64,7 @@ the sorted values, but the indices. For example, if the first row of the `m_d_s_
 it means that the image closest to image 1 according to the ssim metric is indeed image 1 , the second closest is
 picture 60, the third is picture 9.
 
-The `sort_frames` function will retrieve the closest frame for each frame and so on. It returns a list which contains the
+The `sort_indx` function will retrieve the closest frame for each frame and so on. It returns a list which contains the
 order of the frames. It takes as a parameter the frame to use for the start of the sequence.
 
 The distance ssim is equal to 1 for identical images and -1 for distant images. This is why the sort is performed 
