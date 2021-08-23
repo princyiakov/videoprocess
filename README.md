@@ -7,7 +7,7 @@ are not part of the main video.
 
 <!-- toc -->
 
-- [More About The Project](#more-about-pytorch)
+- [More About The Project](#more-about-the-project)
   - [Understanding the Use Case](#understanding-the-use-case)
   - [How did we solve the issue](#how-did-we-solve-the-issue)
      - [What is DBSCAN](#what-is-DBSCAN)
@@ -54,6 +54,26 @@ algorithms and also most cited in scientific literature.
 The Structural Similarity Index (SSIM) is a much newer equation developed in 2004 by Wang et al. SSIM Index quality 
 assessment index is based on the computation of three factors; luminance (l), contrast (c) and structure (s). 
 The SSIM values range between 0 and 1 where 1 means a perfect match between the original image and the copy.
+
+#### How did we sort the frames
+After implementing SSIM the code builds the `m_d_ssim matrix`. Each point (i, j) of the `m_d_ssim` matrix contains the 
+distance between the images i and j of the good_frames list. The distance used is the ssim.
+
+Each row of the previous matrix is sorted according to the row axis. A new matrix `m_d_s_idx` is created and contains not
+the sorted values, but the indices. For example, if the first row of the `m_d_s_idx` matrix starts with [1, 60, 9 ...], 
+it means that the image closest to image 1 according to the ssim metric is indeed image 1 , the second closest is
+picture 60, the third is picture 9.
+
+The `sort_frames` function will retrieve the closest frame for each frame and so on. It returns a list which contains the
+order of the frames. It takes as a parameter the frame to use for the start of the sequence.
+
+The distance ssim is equal to 1 for identical images and -1 for distant images. This is why the sort is performed 
+according to `-m_d_ssim` rather than `m_d_ssim`.
+
+Then the difference in distance between all the frames of the reordered video, we keep the beginning which gives a 
+sequence where the sum of the differences in distances between the frames is the smallest. In other words, it is the 
+sequence where there are the least “jumps” of distances between the frames. The `smoothness` function is responsible 
+for calculating this index.
 
 ## Installation
 We can use the code by either installing the package on the local or install the docker image 
