@@ -18,7 +18,8 @@ are not part of the main video.
   - [Docker Image](#docker-image)
     - [Building the image yourself](#building-the-image-yourself)
 - [How to run the application](#how-to-run-the-application)
-- [Resources](#resources)
+  - [Command Line](#command-line)
+  - [Docker Image](#docker-image)
 <!-- tocstop -->
 
 ## More About The Project
@@ -65,12 +66,12 @@ cd videoprocess
 ```
 2. Create and activate the conda environment
 ```
-conda create --name vidprocess python=3.7
-conda activate vidprocess
+conda create --name videoprocess python=3.7
+conda activate videoprocess
 ```
 3. Install the package
 ```
-pip install ./Installable/vidprocess-0.0.1.tar.gz
+pip install ./Installable/videoprocess-0.0.1.tar.gz
 ```
 
 ### Docker Image
@@ -111,12 +112,32 @@ On successful installation, you should be able to see the Repository name and Ta
 docker images
 ```
 
+
 ## How to run the application
-Command line arguments
+We can run the application either by command line or docker image
+### Command line 
+Sample Command line arguments: 
+
 ```
-usage:python3 main.py --input_file shuffled_19.mp4 --output_file out6.mp4
+usage:python3 main.py --input_file shuffled_19.mp4 --output_file out.mp4
 
 argument  : 
 --input_file      Path to the input video file to be recitfied
 --output_fie      Path to the output file where the recified image is to be stored
+```
+
+### Docker Image
+
+1. To run your docker image: 
+
+```
+docker run  -t video-process:0.1
+```
+
+Where `video-process` is the repository name and `0.1` is the Tag
+
+2. Docker Compose is available to run the application when multiple containers are available
+
+```
+docker-compose up -d
 ```

@@ -135,7 +135,7 @@ class VidRectifier:
         # Save the good frames as a grid
         self.__save_sample(self.good_frames, self.basename + "_good_frames.png")
 
-    def __smoothness(self, order, dist_m, stats=False):
+    def __smoothness(self, order, dist_m, stats=False, name="None"):
         """
         Returns values with the least “jumps” of distances between the frames
         """
@@ -155,7 +155,7 @@ class VidRectifier:
 
             x_pos = [i for i, _ in enumerate(vals)]
             plt.bar(x_pos, vals)
-            plt.show()
+            plt.savefig(self.basename + name + "_smoothness")
 
         return sum(d_vals)
 
@@ -202,9 +202,9 @@ class VidRectifier:
                            + "_good_order.png")
 
         best_order = _sort_indx(best_start, m_d_s_idx)
-        self.__smoothness(best_order, m_d_ssim, True)
+        self.__smoothness(best_order, m_d_ssim, True, "_best_order_")
 
         worst_order = _sort_indx(worst_start, m_d_s_idx)
-        self.__smoothness(worst_order, m_d_ssim, True)
+        self.__smoothness(worst_order, m_d_ssim, True, "_worst_order_")
 
         self.__write_video_file(self.good_frames[ordered_idx])

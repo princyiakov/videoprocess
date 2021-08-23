@@ -13,9 +13,9 @@ COPY ./videoprocess ./videoprocess
 COPY ./main.py .
 COPY ./LICENSE .
 COPY ./setup.py .
-COPY ./requirements.txt .
 COPY ./README.md .
 COPY ./shuffled_19.mp4 .
+# COPY ./requirements.txt .
 
 RUN pip install ./ wheel
 

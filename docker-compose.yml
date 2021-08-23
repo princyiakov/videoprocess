@@ -1,0 +1,4 @@
+version: "3.3"
+services:
+  videoprocess:
+    image: "video-process:0.1"
