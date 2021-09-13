@@ -1,7 +1,3 @@
-![Meero Logo](https://github.com/princys-laboratory/videoprocess/blob/main/meero.gif)
-
---------------------------------------------------------------------------------------------------
-
 This code aims at rectifying corrupted videos particularly where frames are shuffled and contains outlier images which 
 are not part of the main video.
 
